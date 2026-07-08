@@ -29,6 +29,17 @@ def inject_base_css():
         .st-key-mark_grid div[data-testid="stVerticalBlock"] {
             gap: 0.3rem;
         }
+        /* Keep the 4 suit columns side by side on narrow/mobile screens
+           instead of Streamlit's default collapse into one long column. */
+        .st-key-mark_grid [data-testid="stHorizontalBlock"] {
+            flex-wrap: nowrap !important;
+            flex-direction: row !important;
+        }
+        .st-key-mark_grid [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+            width: auto !important;
+        }
         </style>""",
         unsafe_allow_html=True,
     )
@@ -91,7 +102,7 @@ def render_grid(card_count, marked, disabled, reveal_map, toggle_cb):
                 header_color = "#d64545" if suit in game.RED_SUITS else "inherit"
                 st.markdown(
                     f"<div style='text-align:center;font-size:1.4rem;line-height:1.2;"
-                    f"color:{header_color};'>{suit}</div>",
+                    f"margin-bottom:0.5rem;color:{header_color};'>{suit}</div>",
                     unsafe_allow_html=True,
                 )
                 for rank in ranks:
