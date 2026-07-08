@@ -49,6 +49,7 @@ CHECK_HELP = "Mark exactly the right number of cards to unlock this."
 CORRECT_MSG = "**Congratulations!** 🎉 Every card accounted for. I may have shed a single, dignified tear."
 WRONG_MSG = "Hmm. Not *quite*, dear. Some of those cards are right, and some are… creative. Care to try again, or shall I just show you?"
 TRY_AGAIN_BUTTON = "Try again"
+TRY_AGAIN_HINT = "Go on then — fix your marks, and hit Check when you're feeling confident."
 REVEAL_BUTTON = "Give me the answer"
 REVEAL_MSG = (
     "Here's the truth of it: 🟩 green you got right, 🟥 red you imagined, "

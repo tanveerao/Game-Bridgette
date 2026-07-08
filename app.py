@@ -158,10 +158,15 @@ def marking_panel():
 
     locked = ss.phase == "flash"
     settled = ss.check_result in ("correct", "revealed")
+    # While the wrong-answer warning is up, the board locks: the player must
+    # explicitly pick "Try again" (re-enables editing) or "Give me the answer".
+    awaiting_choice = ss.check_result == "wrong"
 
     st.subheader(persona.MARK_HEADER)
     if locked:
         st.caption(persona.GRID_LOCKED_HINT)
+    elif ss.first_checked and ss.check_result is None:
+        st.caption(persona.TRY_AGAIN_HINT)
     else:
         st.caption(persona.MARK_HINT)
 
@@ -179,17 +184,25 @@ def marking_panel():
     ui.render_grid(
         ss.card_count,
         ss.marked,
-        disabled=locked or settled,
+        disabled=locked or settled or awaiting_choice,
         reveal_map=reveal_map,
         toggle_cb=toggle_card,
     )
 
-    st.write(f"Marked **{len(ss.marked)} of {n_expected}**")
+    n_marked = len(ss.marked)
+    if not locked and not settled and not awaiting_choice and n_marked != n_expected:
+        missing = n_expected - n_marked
+        if missing > 0:
+            st.write(f"Marked **{n_marked} of {n_expected}** — mark {missing} more to unlock Check.")
+        else:
+            st.write(f"Marked **{n_marked} of {n_expected}** — unmark {-missing} to unlock Check.")
+    else:
+        st.write(f"Marked **{n_marked} of {n_expected}**")
     st.button(
         persona.CHECK_BUTTON,
         key="check_btn",
         type="primary",
-        disabled=locked or settled or len(ss.marked) != n_expected,
+        disabled=locked or settled or awaiting_choice or n_marked != n_expected,
         help=persona.CHECK_HELP,
         on_click=do_check,
     )

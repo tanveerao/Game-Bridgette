@@ -26,6 +26,9 @@ def inject_base_css():
             font-size: 0.85rem;
             font-weight: 700;
         }
+        .st-key-mark_grid div[data-testid="stVerticalBlock"] {
+            gap: 0.3rem;
+        }
         </style>""",
         unsafe_allow_html=True,
     )
@@ -73,7 +76,7 @@ def render_flash(tricks, difficulty):
 
 
 def render_grid(card_count, marked, disabled, reveal_map, toggle_cb):
-    """The marking board: one button per card in the deck, one row per suit.
+    """The marking board: one column per suit, ranks stacked vertically.
 
     Marked cards render as primary buttons. When reveal_map is given, buttons
     are color-coded green / red / yellow via CSS keyed on Streamlit's
@@ -81,32 +84,40 @@ def render_grid(card_count, marked, disabled, reveal_map, toggle_cb):
     """
     ranks = game.ALL_RANKS[:card_count]
     css = []
-    for suit in game.SUITS:
-        cols = st.columns(card_count, gap="small")
-        for i, rank in enumerate(ranks):
-            card = (rank, suit)
-            key = f"mark_{SUIT_CODE[suit]}_{rank}"
-            is_marked = card in marked
-            if not is_marked and suit in game.RED_SUITS:
-                label = f":red[{rank}{suit}]"
-            else:
-                label = f"{rank}{suit}"
-            cols[i].button(
-                label,
-                key=key,
-                disabled=disabled,
-                type="primary" if is_marked else "secondary",
-                on_click=toggle_cb,
-                args=(card,),
-                use_container_width=True,
-            )
-            if reveal_map and card in reveal_map:
-                bg, fg = REVEAL_STYLES[reveal_map[card]]
-                css.append(
-                    f".st-key-{key} button{{background-color:{bg} !important;"
-                    f"border-color:{bg} !important;opacity:1 !important;}}"
-                    f".st-key-{key} button p,.st-key-{key} button span"
-                    f"{{color:{fg} !important;}}"
+    with st.container(key="mark_grid"):
+        cols = st.columns(len(game.SUITS), gap="small")
+        for col, suit in zip(cols, game.SUITS):
+            with col:
+                header_color = "#d64545" if suit in game.RED_SUITS else "inherit"
+                st.markdown(
+                    f"<div style='text-align:center;font-size:1.4rem;line-height:1.2;"
+                    f"color:{header_color};'>{suit}</div>",
+                    unsafe_allow_html=True,
                 )
+                for rank in ranks:
+                    card = (rank, suit)
+                    key = f"mark_{SUIT_CODE[suit]}_{rank}"
+                    is_marked = card in marked
+                    if not is_marked and suit in game.RED_SUITS:
+                        label = f":red[{rank}{suit}]"
+                    else:
+                        label = f"{rank}{suit}"
+                    st.button(
+                        label,
+                        key=key,
+                        disabled=disabled,
+                        type="primary" if is_marked else "secondary",
+                        on_click=toggle_cb,
+                        args=(card,),
+                        use_container_width=True,
+                    )
+                    if reveal_map and card in reveal_map:
+                        bg, fg = REVEAL_STYLES[reveal_map[card]]
+                        css.append(
+                            f".st-key-{key} button{{background-color:{bg} !important;"
+                            f"border-color:{bg} !important;opacity:1 !important;}}"
+                            f".st-key-{key} button p,.st-key-{key} button span"
+                            f"{{color:{fg} !important;}}"
+                        )
     if css:
         st.markdown("<style>" + "".join(css) + "</style>", unsafe_allow_html=True)
